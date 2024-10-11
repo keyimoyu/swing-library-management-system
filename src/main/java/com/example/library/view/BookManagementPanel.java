@@ -5,6 +5,7 @@ import com.example.library.controller.BookController;
 
 import javax.swing.*;
 import java.awt.*;
+import java.sql.SQLException;
 
 public class BookManagementPanel extends JPanel {
     private JTable bookTable;
@@ -36,9 +37,17 @@ public class BookManagementPanel extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
 
         // 事件处理
-        addBookButton.addActionListener(controller::handleAddBook);
+        addBookButton.addActionListener(e2 -> {
+            try {
+                controller.handleAddBook(e2);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        });
         editBookButton.addActionListener(controller::handleEditBook);
-        deleteBookButton.addActionListener(controller::handleDeleteBook);
+        deleteBookButton.addActionListener(e1 -> {
+            controller.handleDeleteBook(e1);
+        });
         manageBorrowButton.addActionListener(e -> {
             mainFrame.showPanel("BorrowReturn");
         });

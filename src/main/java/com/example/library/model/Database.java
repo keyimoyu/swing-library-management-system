@@ -168,17 +168,42 @@ public class Database {
         return books;
     }
 
-    public static void addBook(Book book) {
-        books.add(book);
-    }
+
 
     public static void editBook(int index, String newBookName) {
         books.get(index)
                 .setName(newBookName);
     }
 
-    public static void deleteBook(int index) {
-        books.remove(index);
+    // 删除书籍的方法
+    public static void deleteBook(int bookId) throws SQLException {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+
+        try {
+            conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+
+            // 删除书籍的 SQL 语句
+            String deleteSQL = "DELETE FROM books WHERE id = ?";
+            pstmt = conn.prepareStatement(deleteSQL);
+            pstmt.setInt(1, bookId);
+
+            int rowsAffected = pstmt.executeUpdate();
+
+            // 从内存中删除该书籍
+            if (rowsAffected > 0) {
+                books.removeIf(book -> book.getId() == bookId);
+            } else {
+                System.out.println("删除数据库中的书籍时没有匹配的记录。");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
+        } finally {
+            if (pstmt != null) pstmt.close();
+            if (conn != null) conn.close();
+        }
     }
 
     // 借还书籍相关方法
@@ -265,6 +290,83 @@ public class Database {
             }
         }
     }
+
+
+        // 添加书籍的方法
+    public static void addBook(Book book) throws SQLException {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+
+        try {
+            conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+
+            // 根据类别名称获取类别ID
+            int categoryId = getCategoryIDByName(book.getCategory());
+            if (categoryId == -1) {
+                throw new SQLException("类别不存在，请先添加类别。");
+            }
+
+            // 插入书籍的 SQL 语句
+            String insertSQL = "INSERT INTO books (name, author, category_id, stock) VALUES (?, ?, ?, ?)";
+            pstmt = conn.prepareStatement(insertSQL, Statement.RETURN_GENERATED_KEYS);
+            pstmt.setString(1, book.getName());
+            pstmt.setString(2, book.getAuthor());
+            pstmt.setInt(3, categoryId);  // 设置正确的 category_id
+            pstmt.setInt(4, book.getStock());
+
+            int rowsAffected = pstmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                // 获取生成的书籍 ID
+                ResultSet rs = pstmt.getGeneratedKeys();
+                if (rs.next()) {
+                    int generatedId = rs.getInt(1);
+                    book.setId(generatedId);  // 设置生成的书籍 ID
+                    books.add(book);  // 添加到内存中的 books 列表
+                }
+                rs.close();
+            } else {
+                System.out.println("添加书籍时没有成功插入到数据库。");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
+        } finally {
+            if (pstmt != null) pstmt.close();
+            if (conn != null) conn.close();
+        }
+    }
+
+    // 根据类别名称获取类别ID
+    private static int getCategoryIDByName(String categoryName) throws SQLException {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        int categoryId = -1;
+
+        try {
+            conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+
+            String query = "SELECT id FROM categories WHERE name = ?";
+            pstmt = conn.prepareStatement(query);
+            pstmt.setString(1, categoryName);
+
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                categoryId = rs.getInt("id");
+            } else {
+                System.out.println("类别 '" + categoryName + "' 不存在。");
+            }
+        } finally {
+            if (rs != null) rs.close();
+            if (pstmt != null) pstmt.close();
+            if (conn != null) conn.close();
+        }
+
+        return categoryId;
+    }
 }
+
 
 

@@ -7,6 +7,7 @@ import com.example.library.MainFrame;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.sql.SQLException;
 
 public class BookController {
     private BookManagementPanel bookPanel;
@@ -17,7 +18,7 @@ public class BookController {
         this.mainFrame = mainFrame;
     }
 
-    public void handleAddBook(ActionEvent e) {
+    public void handleAddBook(ActionEvent e) throws SQLException {
         JTextField nameField = new JTextField();
         JTextField authorField = new JTextField();
         JTextField categoryField = new JTextField();
@@ -77,13 +78,23 @@ public class BookController {
         }
     }
 
+
     public void handleDeleteBook(ActionEvent e) {
         int selectedRow = bookPanel.getBookTable().getSelectedRow();
         if (selectedRow != -1) {
+            // 获取表格中选中的书籍 ID，假设书籍 ID 是表格的第一列
+            int bookId = (int) bookPanel.getBookTable().getValueAt(selectedRow, 0);
+
             int confirm = JOptionPane.showConfirmDialog(bookPanel, "确定要删除选中的书籍吗？", "确认删除", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-                Database.deleteBook(selectedRow);
-                bookPanel.refreshTable();
+                try {
+                    // 调用 Database 类中的删除书籍方法
+                    Database.deleteBook(bookId);
+                    bookPanel.refreshTable();  // 刷新表格数据
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(bookPanel, "删除书籍时发生错误！");
+                }
             }
         } else {
             JOptionPane.showMessageDialog(bookPanel, "请选择一个书籍进行删除！");
