@@ -108,7 +108,6 @@ public class Database {
     }
 
 
-
     // 加载书籍数据
     private static void loadBooks() throws SQLException {
         Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
@@ -163,7 +162,8 @@ public class Database {
 
     // TODO
     public static void deleteUser(int selectedRow) {}
-        // 图书管理相关方法
+
+    // 图书管理相关方法
     public static List<Book> getBooks() {
         return books;
     }
@@ -173,7 +173,8 @@ public class Database {
     }
 
     public static void editBook(int index, String newBookName) {
-        books.get(index).setName(newBookName);
+        books.get(index)
+                .setName(newBookName);
     }
 
     public static void deleteBook(int index) {
@@ -190,11 +191,80 @@ public class Database {
     }
 
     public static boolean register(String username, String password) {
-        return true;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+
+            // 检查用户名是否已经存在
+            String checkUserSQL = "SELECT * FROM users WHERE username = ?";
+            pstmt = conn.prepareStatement(checkUserSQL);
+            pstmt.setString(1, username);
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                // 用户名已存在
+                return false;
+            }
+
+            // 如果用户名不存在，插入新用户
+            String insertUserSQL = "INSERT INTO users (username, password) VALUES (?, ?)";
+            pstmt = conn.prepareStatement(insertUserSQL);
+            pstmt.setString(1, username);
+            pstmt.setString(2, password);
+            int rowsAffected = pstmt.executeUpdate();
+
+            return rowsAffected > 0; // 如果插入成功，返回 true
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            // 关闭资源
+            try {
+                if (rs != null) rs.close();
+                if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
+    // 用户登录方法
     public static boolean login(String username, String password) {
-        return true;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+
+            // 查询用户名和密码是否匹配
+            String loginSQL = "SELECT * FROM users WHERE username = ? AND password = ?";
+            pstmt = conn.prepareStatement(loginSQL);
+            pstmt.setString(1, username);
+            pstmt.setString(2, password);
+            rs = pstmt.executeQuery();
+
+            return rs.next();  // 如果存在匹配的记录，返回 true，否则返回 false
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            // 关闭资源
+            try {
+                if (rs != null) rs.close();
+                if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
+
 
