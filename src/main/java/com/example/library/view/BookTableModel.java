@@ -4,7 +4,10 @@ import com.example.library.model.Book;
 import com.example.library.model.Database;
 
 import javax.swing.table.AbstractTableModel;
+import java.sql.SQLException;
 import java.util.List;
+
+import static com.example.library.model.Database.loadDataFromDatabase;
 
 public class BookTableModel extends AbstractTableModel {
     private String[] columnNames = {"ID", "书名", "作者", "类别", "库存"};
@@ -14,10 +17,12 @@ public class BookTableModel extends AbstractTableModel {
         this.books = Database.getBooks();
     }
 
-    public void refreshData() {
+    public void refreshData() throws SQLException {
         books = Database.getBooks();
+        loadDataFromDatabase();
         fireTableDataChanged();
     }
+
 
     @Override
     public int getRowCount() {
@@ -46,4 +51,6 @@ public class BookTableModel extends AbstractTableModel {
     public String getColumnName(int column) {
         return columnNames[column];
     }
+
+
 }

@@ -20,10 +20,11 @@ public class BorrowReturnPanel extends JPanel {
         // 按钮区
         JButton returnBookButton = new JButton("归还书籍");
         JButton borrowBookButton = new JButton("借出书籍");
+        JButton backButton = new JButton("返回主页面");
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(borrowBookButton);
         buttonPanel.add(returnBookButton);
-
+        buttonPanel.add(backButton);
         // 表格
         borrowTableModel = new BorrowTableModel();
         borrowTable = new JTable(borrowTableModel);
@@ -35,6 +36,9 @@ public class BorrowReturnPanel extends JPanel {
         // 事件处理
         returnBookButton.addActionListener(controller::handleReturnBook);
         borrowBookButton.addActionListener(controller::handleBorrowBook);
+        backButton.addActionListener(e -> {
+            mainFrame.showPanel("BookManagement");  // 切换到主页面
+        });
     }
 
     public JTable getBorrowTable() {

@@ -68,7 +68,11 @@ public class BookController {
                 String newName = nameField.getText().trim();
                 if (!newName.isEmpty()) {
                     Database.editBook(selectedRow, newName);
-                    bookPanel.refreshTable();
+                    try {
+                        bookPanel.refreshTable();
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 } else {
                     JOptionPane.showMessageDialog(bookPanel, "书名不能为空！");
                 }

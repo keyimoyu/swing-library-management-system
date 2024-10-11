@@ -169,7 +169,6 @@ public class Database {
     }
 
 
-
     public static void editBook(int index, String newBookName) {
         books.get(index)
                 .setName(newBookName);
@@ -183,20 +182,24 @@ public class Database {
         try {
             conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
 
-            // 删除书籍的 SQL 语句
-            String deleteSQL = "DELETE FROM books WHERE id = ?";
-            pstmt = conn.prepareStatement(deleteSQL);
+            // 首先删除与该书籍相关的借书记录
+            String deleteBorrowRecordsSQL = "DELETE FROM borrow_records WHERE book_id = ?";
+            pstmt = conn.prepareStatement(deleteBorrowRecordsSQL);
             pstmt.setInt(1, bookId);
+            pstmt.executeUpdate();
+            pstmt.close();
 
+            // 然后删除书籍记录
+            String deleteBookSQL = "DELETE FROM books WHERE id = ?";
+            pstmt = conn.prepareStatement(deleteBookSQL);
+            pstmt.setInt(1, bookId);
             int rowsAffected = pstmt.executeUpdate();
 
-            // 从内存中删除该书籍
             if (rowsAffected > 0) {
-                books.removeIf(book -> book.getId() == bookId);
+                System.out.println("书籍删除成功。");
             } else {
-                System.out.println("删除数据库中的书籍时没有匹配的记录。");
+                System.out.println("书籍删除失败，可能该书籍不存在。");
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
             throw e;
@@ -205,6 +208,7 @@ public class Database {
             if (conn != null) conn.close();
         }
     }
+
 
     // 借还书籍相关方法
     public static List<BorrowRecord> getBorrowRecords() {
@@ -292,7 +296,7 @@ public class Database {
     }
 
 
-        // 添加书籍的方法
+    // 添加书籍的方法
     public static void addBook(Book book) throws SQLException {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -366,6 +370,21 @@ public class Database {
 
         return categoryId;
     }
+
+    public static void loadDataFromDatabase() throws SQLException {
+        // 清空现有的数据，避免重复加载
+        users.clear();
+        categories.clear();
+        books.clear();
+        borrowRecords.clear();
+
+        // 加载各个数据表的数据
+        loadUsers();
+        loadCategories();
+        loadBooks();
+        loadBorrowRecords();
+    }
+
 }
 
 

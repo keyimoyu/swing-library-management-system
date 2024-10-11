@@ -57,7 +57,7 @@ public class BookManagementPanel extends JPanel {
         return bookTable;
     }
 
-    public void refreshTable() {
+    public void refreshTable() throws SQLException {
         bookTableModel.refreshData();
     }
 }
