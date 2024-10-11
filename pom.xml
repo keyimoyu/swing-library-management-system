@@ -15,6 +15,12 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.30</version>
+        </dependency>
+
         <!-- SLF4J 日志库 -->
         <dependency>
             <groupId>org.slf4j</groupId>
